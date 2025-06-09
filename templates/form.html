@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>清瀬市　野鳥観察報告</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    #map { height: 300px; margin: 10px 0; }
+    #thumbnail { max-width: 150px; display: none; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>清瀬市　野鳥観察報告フォーム</h1>
+  <p> ＊は必須項目です</p>
+  <form action="/confirm" method="post" enctype="multipart/form-data">
+    <label>添付写真・動画・音声ファイル：<input type="file" name="file" id="file-input"></label><br>
+    <img id="thumbnail" src="#"><br>
+
+    <label>観察種*：<input type="text" name="species" required></label><br>
+    <label>観察日*：<input type="date" name="date" required></label><br>
+    <label>観察場所*：<input type="text" name="location_text"></label><br>
+    <div id="map"></div>
+    <style>
+  #map {
+    height: 300px;
+    width: 600px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+  }
+
+    </style>
+    <label>緯度：<input type="number" id="lat" name="latitude" step="0.0001"></label>
+    <label>経度：<input type="number" id="lng" name="longitude" step="0.0001"></label><br>
+<br>
+    <label>・羽数：<input type="number" name="count" min="1"></label><br>
+    <label>・性別：
+      <select name="sex">
+        <option value="不明" selected>不明</option>
+        <option value="オス">オス</option>
+        <option value="メス">メス</option>
+      </select>
+    </label><br>
+    <label>・年齢：
+      <select name="age">
+        <option value="不明" selected>不明</option>
+        <option value="成鳥">成鳥</option>
+        <option value="幼鳥">幼鳥</option>
+      </select>
+    </label><br>
+    <label>・繁殖ステージ：<br>
+      <input type="checkbox" name="breeding" value="求愛行動を見た">求愛行動を見た<br>
+      <input type="checkbox" name="breeding" value="巣を見つけた">巣を見つけた<br>
+      <input type="checkbox" name="breeding" value="巣材運搬">巣材運搬<br>
+      <input type="checkbox" name="breeding" value="餌の運搬">餌の運搬<br>
+      <input type="checkbox" name="breeding" value="巣立ちびなを見た">巣立ちびなを見た<br>
+    </label>
+    <label>・初鳴き or 初認：<input type="checkbox" name="first_detected" value="yes"></label><br>
+    <label>・観察環境：<input type="text" name="environment"></label><br>
+    <label>・備考：<textarea name="notes" rows="3" cols="40"></textarea></label><br>
+    <label>観察者名*：<input type="text" name="observer" required></label><br>
+    <label>連絡先（メール）*：<input type="email" name="email" required></label><br>
+    <input type="submit" value="確認画面へ">
+  </form>
+
+  <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('map').setView([35.78528,139.52665], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    let marker = null;
+    map.on('click', function(e) {
+      const { lat, lng } = e.latlng;
+      const latRounded = lat.toFixed(4);
+      const lngRounded = lng.toFixed(4);
+      document.getElementById('lat').value = latRounded;
+      document.getElementById('lng').value = lngRounded;
+      if (marker) {
+        marker.setLatLng([lat, lng]);
+      } else {
+        marker = L.marker([lat, lng]).addTo(map);
+      }
+    });
+    
+    const fileInput = document.getElementById("file-input");
+    const thumbnail = document.getElementById("thumbnail");
+    fileInput.addEventListener("change", function () {
+      const file = this.files[0];
+      if (!file) return;
+
+      if (file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          thumbnail.src = e.target.result;
+          thumbnail.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+
+    // EXIF から撮影日を取得して <input name="date"> にセット
+        EXIF.getData(file, function () {
+          const dateStr = EXIF.getTag(this, "DateTimeOriginal");
+          if (dateStr) {
+            const formatted = dateStr.split(" ")[0].replace(/:/g, "-"); // "2025:06:09" → "2025-06-09"
+            const dateInput = document.querySelector('input[name="date"]');
+            if (dateInput && !dateInput.value) {
+              dateInput.value = formatted;
+            }
+          }
+        });
+      } else {
+        thumbnail.style.display = "none";
+      }
+    });
+  </script>
+</body>
+</html>
