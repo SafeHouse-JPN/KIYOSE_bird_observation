@@ -8,7 +8,7 @@
   <h1>報告内容の確認</h1>
   <ul>
     {% for k, v in data.items() %}
-      {% if k == 'file' and v and data.file_ext.startswith('.jpg') %}
+      {% if k == 'file' and v and data['file_ext'].startswith('.jpg') %}
         <li>{{ k }}: <br><img src="/uploads/{{ v }}" style="max-width:200px;"></li>
       {% else %}
         <li>{{ k }}: {{ v }}</li>
