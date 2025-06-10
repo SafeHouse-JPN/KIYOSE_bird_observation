@@ -13,16 +13,14 @@ app.secret_key = 'bird-secret'
 UPLOAD_FOLDER = "/tmp/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-SERVICE_ACCOUNT_FILE = "service_account.json"
+SERVICE_JSON = os.environ.get("GOOGLE_SERVICE_JSON")
+SERVICE_ACCOUNT_INFO = json.loads(SERVICE_JSON)
 DRIVE_FOLDER_ID = "kiyose-drive-uploads"
 
 def upload_file_to_drive(local_path, filename):
-    creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE)
-    service = build('drive', 'v3', credentials=creds)
-    file_metadata = {
-        'name': filename,
-        'parents': [DRIVE_FOLDER_ID]
-    }
+    creds = service_account.Credentials.from_service_account_info(SERVICE_ACCOUNT_INFO)
+    service = build("drive", "v3", credentials=creds)
+    file_metadata = {'name': filename, 'parents': [DRIVE_FOLDER_ID]}
     media = MediaFileUpload(local_path, resumable=True)
     file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
     return file.get("id")
