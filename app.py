@@ -48,10 +48,10 @@ def confirm():
     else:
         form['file'] = ""
 
-    required = ['species', 'date', 'observer', 'email']
+    required = ['01_species', '02_date', '12_observer', '13_email']
     if not all(form.get(k) for k in required):
         return "必須項目が不足しています。戻って修正してください。"
-    if not form.get('location_text') and (not form.get('latitude') or not form.get('longitude')):
+    if not form.get('03_location_text') and (not form.get('04_latitude') or not form.get('04_longitude')):
         return "観察場所（テキストまたは座標）のいずれかを入力してください。"
 
     session['form'] = form
