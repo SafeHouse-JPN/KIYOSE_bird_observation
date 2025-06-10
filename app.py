@@ -16,7 +16,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 SERVICE_JSON = os.environ.get("GOOGLE_SERVICE_JSON")
 SERVICE_ACCOUNT_INFO = json.loads(SERVICE_JSON)
-DRIVE_FOLDER_ID = "kiyose-drive-uploads"
+DRIVE_FOLDER_ID = "1thenIO-t4zaAM0aJ25PaMXSB8WnbeIdG"
 
 def upload_file_to_drive(local_path, filename):
     creds = service_account.Credentials.from_service_account_info(SERVICE_ACCOUNT_INFO)
