@@ -48,14 +48,17 @@
         <option value="幼鳥">幼鳥</option>
       </select>
     </label><br>
-    <label>・繁殖ステージ：<br>
-      <input type="checkbox" name="breeding" value="求愛行動を見た">求愛行動を見た<br>
-      <input type="checkbox" name="breeding" value="巣を見つけた">巣を見つけた<br>
-      <input type="checkbox" name="breeding" value="巣材運搬">巣材運搬<br>
-      <input type="checkbox" name="breeding" value="餌の運搬">餌の運搬<br>
-      <input type="checkbox" name="breeding" value="巣立ちびなを見た">巣立ちびなを見た<br>
-    </label>
-    <label>・初鳴き or 初認：<input type="checkbox" name="first_detected" value="yes"></label><br>
+    <label>・繁殖ステージ：
+      <select name="breeding">
+        <option value="---" selected>---</option>
+        <option value="求愛行動を見た">求愛行動を見た</option>
+        <option value="巣を見つけた">巣を見つけた</option>
+        <option value="巣材運搬">巣材運搬</option>
+        <option value="餌の運搬">餌の運搬</option>
+        <option value="巣立ちびなを見た">巣立ちびなを見た</option>
+      </select>
+    </label><br>
+    <label>・今季の初鳴き or 初認：<input type="checkbox" name="first_detected" value="yes"></label><br>
     <label>・観察環境：<input type="text" name="environment"></label><br>
     <label>・備考：<textarea name="notes" rows="3" cols="40"></textarea></label><br>
     <label>観察者名*：<input type="text" name="observer" required></label><br>
