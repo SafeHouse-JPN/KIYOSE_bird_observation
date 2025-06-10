@@ -3,34 +3,51 @@ from flask import send_from_directory
 import csv, os
 from werkzeug.utils import secure_filename
 from datetime import datetime
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
 
 app = Flask(__name__)
 app.secret_key = 'bird-secret'
-UPLOAD_FOLDER = "uploads"
-CSV_FILE = "data.csv"
+
+UPLOAD_FOLDER = "/tmp/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+SERVICE_ACCOUNT_FILE = "service_account.json"
+DRIVE_FOLDER_ID = "kiyose-drive-uploads"
+
+def upload_file_to_drive(local_path, filename):
+    creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE)
+    service = build('drive', 'v3', credentials=creds)
+    file_metadata = {
+        'name': filename,
+        'parents': [DRIVE_FOLDER_ID]
+    }
+    media = MediaFileUpload(local_path, resumable=True)
+    file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+    return file.get("id")
 
 @app.route('/')
 def index():
     return render_template("form.html")
     
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(UPLOAD_FOLDER, filename)
+##@app.route('/uploads/<filename>')
+##def uploaded_file(filename):
+##    return send_from_directory(UPLOAD_FOLDER, filename)
 
 @app.route('/confirm', methods=['POST'])
 def confirm():
-    form = request.form.to_dict()
+    form = request.form.to_dict(flat=True)
     file = request.files.get('file')
+
     if file and file.filename:
         filename = secure_filename(file.filename)
-        file_ext = os.path.splitext(filename)[1].lower()
-        file.save(os.path.join(UPLOAD_FOLDER, filename))
-        form['file'] = filename
-        form['file_ext'] = file_ext
+        local_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(local_path)
+        drive_file_id = upload_file_to_drive(local_path, filename)
+        form['file'] = f"https://drive.google.com/file/d/{drive_file_id}/view"
     else:
         form['file'] = ""
-        form['file_ext'] = ""
 
     required = ['species', 'date', 'observer', 'email']
     if not all(form.get(k) for k in required):
@@ -47,17 +64,20 @@ def submit():
     if not data:
         return redirect('/')
 
-    file_exists = os.path.exists(CSV_FILE)
-    with open(CSV_FILE, "a", newline="", encoding="utf-8-sig") as f:
+    # CSVを一時ファイルとして保存
+    csv_path = "/tmp/data.csv"
+    file_exists = os.path.exists(csv_path)
+    with open(csv_path, "a", newline="", encoding="utf-8-sig") as f:
         writer = csv.DictWriter(f, fieldnames=data.keys())
         if not file_exists:
             writer.writeheader()
         writer.writerow(data)
 
-    return "<h2>報告ありがとうございました！</h2><a href='/'>戻る</a>"
+    # DriveへCSVアップロード
+    drive_csv_id = upload_file_to_drive(csv_path, "data.csv")
 
-##if __name__ == '__main__':
-##    app.run(debug=True)
+    return f"<h2>報告ありがとうございました！</h2><p>CSVファイル（上書き）: <a href='https://drive.google.com/file/d/{drive_csv_id}/view'>こちら</a></p><a href='/'>戻る</a>"
+
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))  # RenderがPORTを指定してくる
+    port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
