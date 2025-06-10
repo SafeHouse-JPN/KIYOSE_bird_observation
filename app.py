@@ -17,6 +17,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 SERVICE_JSON = os.environ.get("GOOGLE_SERVICE_JSON")
 SERVICE_ACCOUNT_INFO = json.loads(SERVICE_JSON)
 DRIVE_FOLDER_ID = "1thenIO-t4zaAM0aJ25PaMXSB8WnbeIdG"
+DRIVE_DATA_CSV_FILE_ID = "1MFwTeNHZ7uEs-2TbOY-wOovFj64h3o3k"
 
 def upload_file_to_drive(local_path, filename):
     creds = service_account.Credentials.from_service_account_info(SERVICE_ACCOUNT_INFO)
@@ -25,6 +26,30 @@ def upload_file_to_drive(local_path, filename):
     media = MediaFileUpload(local_path, resumable=True)
     file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
     return file.get("id")
+
+def download_csv_from_drive(file_id, local_path):
+    creds = service_account.Credentials.from_service_account_info(SERVICE_ACCOUNT_INFO)
+    service = build('drive', 'v3', credentials=creds)
+    request = service.files().get_media(fileId=file_id)
+    with open(local_path, 'wb') as f:
+        downloader = MediaIoBaseDownload(f, request)
+        done = False
+        while not done:
+            _, done = downloader.next_chunk()
+
+def append_to_csv(local_path, row_dict):
+    file_exists = os.path.exists(local_path)
+    with open(local_path, "a", newline="", encoding="utf-8-sig") as f:
+        writer = csv.DictWriter(f, fieldnames=row_dict.keys())
+        if not file_exists:
+            writer.writeheader()
+        writer.writerow(row_dict)
+
+def overwrite_drive_file(local_path, file_id):
+    creds = service_account.Credentials.from_service_account_info(SERVICE_ACCOUNT_INFO)
+    service = build('drive', 'v3', credentials=creds)
+    media = MediaFileUpload(local_path, resumable=True)
+    service.files().update(fileId=file_id, media_body=media).execute()
 
 @app.route('/')
 def index():
@@ -63,19 +88,17 @@ def submit():
     if not data:
         return redirect('/')
 
-    # CSVを一時ファイルとして保存
-    csv_path = "/tmp/data.csv"
-    file_exists = os.path.exists(csv_path)
-    with open(csv_path, "a", newline="", encoding="utf-8-sig") as f:
-        writer = csv.DictWriter(f, fieldnames=data.keys())
-        if not file_exists:
-            writer.writeheader()
-        writer.writerow(data)
+    # 1. Driveからdata.csvをダウンロード
+    local_path = "/tmp/data.csv"
+    download_csv_from_drive(DRIVE_DATA_CSV_FILE_ID, local_path)
 
-    # DriveへCSVアップロード
-    drive_csv_id = upload_file_to_drive(csv_path, "data.csv")
+    # 2. 追記
+    append_to_csv(local_path, data)
 
-    return f"<h2>報告ありがとうございました！</h2><p>CSVファイル（上書き）: <a href='https://drive.google.com/file/d/{drive_csv_id}/view'>こちら</a></p><a href='/'>戻る</a>"
+    # 3. Driveへ再アップロード（上書き）
+    overwrite_drive_file(local_path, DRIVE_DATA_CSV_FILE_ID)
+
+    return "<h2>報告ありがとうございました！（Google Driveに追記しました）</h2><a href='/'>戻る</a>"
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
