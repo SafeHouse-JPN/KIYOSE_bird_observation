@@ -38,6 +38,7 @@ def index():
 def confirm():
     form = request.form.to_dict(flat=True)
     file = request.files.get('file')
+    print("フォームデータ:", form)
 
     if file and file.filename:
         filename = secure_filename(file.filename)
