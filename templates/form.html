@@ -13,12 +13,12 @@
   <h1>清瀬市　野鳥観察報告フォーム</h1>
   <p> ＊は必須項目です</p>
   <form action="/confirm" method="post" enctype="multipart/form-data">
-    <label>添付写真・動画・音声ファイル：<input type="file" name="file" id="file-input"></label><br>
+    <label>添付写真・動画・音声ファイル：<input type="file" name="00_file" id="file-input"></label><br>
     <img id="thumbnail" src="#"><br>
 
-    <label>観察種*：<input type="text" name="species" required></label><br>
-    <label>観察日*：<input type="date" name="date" required></label><br>
-    <label>観察場所*：<input type="text" name="location_text"></label><br>
+    <label>観察種*：<input type="text" name="01_species" required></label><br>
+    <label>観察日*：<input type="date" name="02_date" required></label><br>
+    <label>観察場所*：<input type="text" name="03_location_text"></label><br>
     <div id="map"></div>
     <style>
   #map {
@@ -30,26 +30,26 @@
   }
 
     </style>
-    <label>緯度：<input type="number" id="lat" name="latitude" step="0.0001"></label>
-    <label>経度：<input type="number" id="lng" name="longitude" step="0.0001"></label><br>
+    <label>緯度：<input type="number" id="lat" name="04_latitude" step="0.0001"></label>
+    <label>経度：<input type="number" id="lng" name="04_longitude" step="0.0001"></label><br>
 <br>
-    <label>・羽数：<input type="number" name="count" min="1"></label><br>
+    <label>・羽数：<input type="number" name="05_count" min="1"></label><br>
     <label>・性別：
-      <select name="sex">
+      <select name="06_sex">
         <option value="不明" selected>不明</option>
         <option value="オス">オス</option>
         <option value="メス">メス</option>
       </select>
     </label><br>
     <label>・年齢：
-      <select name="age">
+      <select name="07_age">
         <option value="不明" selected>不明</option>
         <option value="成鳥">成鳥</option>
         <option value="幼鳥">幼鳥</option>
       </select>
     </label><br>
     <label>・繁殖ステージ：
-      <select name="breeding">
+      <select name="08_breeding">
         <option value="---" selected>---</option>
         <option value="求愛行動を見た">求愛行動を見た</option>
         <option value="巣を見つけた">巣を見つけた</option>
@@ -58,11 +58,11 @@
         <option value="巣立ちびなを見た">巣立ちびなを見た</option>
       </select>
     </label><br>
-    <label>・今季の初鳴き or 初認：<input type="checkbox" name="first_detected" value="yes"></label><br>
-    <label>・観察環境：<input type="text" name="environment"></label><br>
-    <label>・備考：<textarea name="notes" rows="3" cols="40"></textarea></label><br>
-    <label>観察者名*：<input type="text" name="observer" required></label><br>
-    <label>連絡先（メール）*：<input type="email" name="email" required></label><br>
+    <label>・今季の初鳴き or 初認：<input type="checkbox" name="09_first_detected" value="yes"></label><br>
+    <label>・観察環境：<input type="text" name="10_environment"></label><br>
+    <label>・備考：<textarea name="11_notes" rows="3" cols="40"></textarea></label><br>
+    <label>観察者名*：<input type="text" name="12_observer" required></label><br>
+    <label>連絡先（メール）*：<input type="email" name="13_email" required></label><br>
     <input type="submit" value="確認画面へ">
   </form>
 
@@ -99,12 +99,12 @@
         };
         reader.readAsDataURL(file);
 
-    // EXIF から撮影日を取得して <input name="date"> にセット
+    // EXIF から撮影日を取得して <input name="02_date"> にセット
         EXIF.getData(file, function () {
           const dateStr = EXIF.getTag(this, "DateTimeOriginal");
           if (dateStr) {
             const formatted = dateStr.split(" ")[0].replace(/:/g, "-"); // "2025:06:09" → "2025-06-09"
-            const dateInput = document.querySelector('input[name="date"]');
+            const dateInput = document.querySelector('input[name="02_date"]');
             if (dateInput && !dateInput.value) {
               dateInput.value = formatted;
             }
