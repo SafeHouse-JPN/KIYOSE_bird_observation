@@ -10,18 +10,13 @@
   <form action="/submit" method="post">
     {% for k, v in data.items() %}
       <p><strong>{{ k }}:</strong>
-      {% if k == 'file' and v %}
-        {% if 'file_ext' in data and data['file_ext'].startswith('.jpg') %}
-          <br><img src="{{ v }}" width="200">
-        {% else %}
-          <a href="{{ v }}">ファイルを開く</a>
-        {% endif %}
+      {% if k == 'file' %}
+        {{ v.split('/')[-1] if v else '' }}
       {% else %}
         {{ v }}
       {% endif %}
       </p>
     {% endfor %}
-
     <input type="submit" value="送信する">
   </form>
 
