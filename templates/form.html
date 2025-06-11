@@ -58,7 +58,13 @@
         <option value="巣立ちびなを見た">巣立ちびなを見た</option>
       </select>
     </label><br>
-    <label>・今季の初鳴き or 初認：<input type="checkbox" name="09_first_detected" value="yes"></label><br>
+    <label>・今季の初鳴き or 初認：
+      <select name="09_first_detected">
+        <option value="---" selected>---</option>
+        <option value="初鳴き">初鳴き</option>
+        <option value="初認">初認</option>
+      </select>
+    </label><br>
     <label>・観察環境：<input type="text" name="10_environment"></label><br>
     <label>・備考：<textarea name="11_notes" rows="3" cols="40"></textarea></label><br>
     <label>観察者名*：<input type="text" name="12_observer" required></label><br>
