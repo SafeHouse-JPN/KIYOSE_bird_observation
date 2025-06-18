@@ -2,58 +2,143 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <title>清瀬市　野鳥観察報告（LINE）</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>野鳥観察報告フォーム (LINE)</title>
 
-  <!-- LIFF SDK -->
+  <!-- Leaflet & LIFF SDK -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
   <style>
-    body { font-family:sans-serif; font-size:17px; line-height:1.6; padding:16px; }
-    label { display:block; margin:10px 0; }
-    input, select, textarea { width:100%; font-size:17px; padding:6px; }
-    button { font-size:17px; padding:10px 20px; margin-top:16px; }
+    body {
+      font-size: 18px;
+      line-height: 1.6;
+      font-family: sans-serif;
+      padding: 16px;
+    }
+    input, select, textarea {
+      font-size: 17px;
+      padding: 6px;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    #map { height: 300px; width: 100%; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; }
+    #thumbnail { max-width: 150px; display: none; margin-top: 10px; }
+    button { font-size: 17px; padding: 10px 20px; }
   </style>
 </head>
 <body>
-  <h2>野鳥観察報告フォーム (LINE)</h2>
+  <h2>清瀬市 野鳥観察報告フォーム（LINE）</h2>
+  <p>＊は必須項目です。写真・音声・動画は任意です。</p>
 
-  <form id="birdForm" action="/confirm" method="post" enctype="multipart/form-data">
-    <label>観察種＊<input type="text" name="species" required></label>
-    <label>観察日＊<input type="date" name="date" required></label>
+  <form action="/confirm" method="post" enctype="multipart/form-data">
+    <label>ファイル添付（写真・動画・音声）：<input type="file" name="file" id="file-input"></label>
+    <img id="thumbnail" src="#"><br>
 
-    <!-- LINE の表示名を自動セット -->
-    <label>観察者名＊<input type="text" id="observer" name="observer" required></label>
-    <!-- LINE userId を hidden で渡せる（CSVに保持したい場合） -->
-    <input type="hidden" id="line_id" name="line_id">
+    <label>＊観察種：<input type="text" name="01_species" required></label>
+    <label>＊観察日：<input type="date" name="02_date" required></label>
+    <label>＊観察場所（テキスト）：<input type="text" name="03_location_text"></label>
+    
+    <div id="map"></div>
+    <label>緯度：<input type="number" id="lat" name="04_latitude" step="0.0001"></label>
+    <label>経度：<input type="number" id="lng" name="04_longitude" step="0.0001"></label>
 
-    <label>メール＊<input type="email" name="email" required placeholder="you@example.com"></label>
+    <label>羽数：<input type="number" name="05_count" min="1"></label>
+    <label>性別：
+      <select name="06_sex">
+        <option value="不明" selected>不明</option>
+        <option value="オス">オス</option>
+        <option value="メス">メス</option>
+      </select>
+    </label>
+    <label>年齢：
+      <select name="07_age">
+        <option value="不明" selected>不明</option>
+        <option value="成鳥">成鳥</option>
+        <option value="幼鳥">幼鳥</option>
+      </select>
+    </label>
+    <label>繁殖ステージ：
+      <select name="08_breeding">
+        <option value="---" selected>---</option>
+        <option value="求愛行動を見た">求愛行動を見た</option>
+        <option value="巣を見つけた">巣を見つけた</option>
+        <option value="巣材運搬">巣材運搬</option>
+        <option value="餌の運搬">餌の運搬</option>
+        <option value="巣立ちびなを見た">巣立ちびなを見た</option>
+      </select>
+    </label>
+    <label>今季の初鳴き or 初認：
+      <select name="09_first_detected">
+        <option value="---" selected>---</option>
+        <option value="初鳴き">初鳴き</option>
+        <option value="初認">初認</option>
+      </select>
+    </label>
+    <label>観察環境：<input type="text" name="10_environment"></label>
+    <label>備考：<textarea name="11_notes" rows="3"></textarea></label>
 
-    <label>観察場所（テキスト）<input type="text" name="location_text"></label>
-
-    <label>添付ファイル <input type="file" name="file"></label>
+    <label>＊観察者名（LINE表示名）：<input type="text" id="observer" name="12_observer" required></label>
+    <input type="hidden" id="line_id" name="14_line_id">
+    <label>＊連絡先（メール）：<input type="email" name="13_email" required></label>
 
     <button type="submit">確認画面へ</button>
   </form>
 
+  <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    // ---------- 1. LIFF 初期化 ----------
-    const LIFF_ID = "2007600313-AgZyPJPR";  // 手順5 で控えた LIFF ID に置換
-    liff.init({ liffId: LIFF_ID })
-      .then(() => {
-        // ---------- 2. プロフィール取得 ----------
-        if (liff.isLoggedIn()) {
-          liff.getProfile().then(profile => {
-            // LINE表示名をフォームに自動入力
-            document.getElementById('observer').value = profile.displayName;
-            document.getElementById('line_id').value = profile.userId;
-          });
-        } else {
-          // 未ログインならログイン要求
-          liff.login();
-        }
-      })
-      .catch(err => console.error('LIFF init error:', err));
+    const map = L.map('map').setView([35.78528,139.52665], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    let marker = null;
+    map.on('click', function(e) {
+      const { lat, lng } = e.latlng;
+      document.getElementById('lat').value = lat.toFixed(4);
+      document.getElementById('lng').value = lng.toFixed(4);
+      if (marker) marker.setLatLng([lat, lng]);
+      else marker = L.marker([lat, lng]).addTo(map);
+    });
+
+    const fileInput = document.getElementById("file-input");
+    const thumbnail = document.getElementById("thumbnail");
+    fileInput.addEventListener("change", function () {
+      const file = this.files[0];
+      if (!file) return;
+      if (file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          thumbnail.src = e.target.result;
+          thumbnail.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+
+        EXIF.getData(file, function () {
+          const dateStr = EXIF.getTag(this, "DateTimeOriginal");
+          if (dateStr) {
+            const formatted = dateStr.split(" ")[0].replace(/:/g, "-");
+            const dateInput = document.querySelector('input[name="02_date"]');
+            if (dateInput && !dateInput.value) {
+              dateInput.value = formatted;
+            }
+          }
+        });
+      } else {
+        thumbnail.style.display = "none";
+      }
+    });
+
+    // LIFF 初期化
+    const liffId = "2007600313-AgZyPJPR"; // ←  LIFF ID 
+    liff.init({ liffId }).then(() => {
+      if (!liff.isLoggedIn()) {
+        liff.login();
+      } else {
+        liff.getProfile().then(profile => {
+          document.getElementById('observer').value = profile.displayName;
+          document.getElementById('line_id').value = profile.userId;
+        });
+      }
+    }).catch(console.error);
   </script>
 </body>
 </html>
