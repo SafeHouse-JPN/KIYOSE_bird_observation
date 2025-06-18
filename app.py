@@ -52,9 +52,9 @@ def overwrite_drive_file(local_path, file_id):
     media = MediaFileUpload(local_path, resumable=True)
     service.files().update(fileId=file_id, media_body=media).execute()
 
-@app.route('/liff')
-def liff():
-    return render_template('liff.html')
+@app.route("/liff")
+def liff_page():
+    return render_template("liff.html")
 
 @app.route('/')
 def index():
