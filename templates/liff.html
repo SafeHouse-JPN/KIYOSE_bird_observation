@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>野鳥観察報告フォーム (LINE)</title>
+
+  <!-- LIFF SDK -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+  <style>
+    body { font-family:sans-serif; font-size:17px; line-height:1.6; padding:16px; }
+    label { display:block; margin:10px 0; }
+    input, select, textarea { width:100%; font-size:17px; padding:6px; }
+    button { font-size:17px; padding:10px 20px; margin-top:16px; }
+  </style>
+</head>
+<body>
+  <h2>野鳥観察報告フォーム (LINE)</h2>
+
+  <form id="birdForm" action="/confirm" method="post" enctype="multipart/form-data">
+    <label>観察種＊<input type="text" name="species" required></label>
+    <label>観察日＊<input type="date" name="date" required></label>
+
+    <!-- LINE の表示名を自動セット -->
+    <label>観察者名＊<input type="text" id="observer" name="observer" required></label>
+    <!-- LINE userId を hidden で渡せる（CSVに保持したい場合） -->
+    <input type="hidden" id="line_id" name="line_id">
+
+    <label>メール＊<input type="email" name="email" required placeholder="you@example.com"></label>
+
+    <label>観察場所（テキスト）<input type="text" name="location_text"></label>
+
+    <label>添付ファイル <input type="file" name="file"></label>
+
+    <button type="submit">確認画面へ</button>
+  </form>
+
+  <script>
+    // ---------- 1. LIFF 初期化 ----------
+    const LIFF_ID = "2007600313-AgZyPJPR";  // 手順5 で控えた LIFF ID に置換
+    liff.init({ liffId: LIFF_ID })
+      .then(() => {
+        // ---------- 2. プロフィール取得 ----------
+        if (liff.isLoggedIn()) {
+          liff.getProfile().then(profile => {
+            // LINE表示名をフォームに自動入力
+            document.getElementById('observer').value = profile.displayName;
+            document.getElementById('line_id').value = profile.userId;
+          });
+        } else {
+          // 未ログインならログイン要求
+          liff.login();
+        }
+      })
+      .catch(err => console.error('LIFF init error:', err));
+  </script>
+</body>
+</html>
