@@ -5,31 +5,43 @@
   <title>清瀬市　野鳥観察報告</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <style>
-    #map { height: 300px; margin: 10px 0; }
+    body {
+      font-size: 18px;
+      line-height: 1.6;
+      font-family: sans-serif;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+    p {
+      margin: 10px 0;
+    }
+    select {
+      font-size: 18px;
+      padding: 10px 20px;
+      margin: 15px 10px 0 0;
+    }
+    input {
+      font-size: 18px;
+      padding: 10px 20px;
+      margin: 15px 10px 0 0;
+    }
+    #map { height: 300px; width: 600px; margin: 10px 0; border: 1px solid #ccc; border-radius: 8px; }
     #thumbnail { max-width: 150px; display: none; margin-top: 10px; }
   </style>
 </head>
 <body>
   <h1>清瀬市　野鳥観察報告フォーム</h1>
-  <h2><p> ＊は必須項目です</p>
+  <p> ＊は必須項目です</p>
   <form action="/confirm" method="post" enctype="multipart/form-data">
     <label>添付写真・動画・音声ファイル：<input type="file" name="file" id="file-input"></label><br>
     <img id="thumbnail" src="#"><br>
-
     <label>観察種*：<input type="text" name="01_species" required></label><br>
     <label>観察日*：<input type="date" name="02_date" required></label><br>
     <label>観察場所*：<input type="text" name="03_location_text"></label><br>
     <div id="map"></div>
-    <style>
-  #map {
-    height: 300px;
-    width: 600px;
-    margin: 10px 0;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-  }
-
-    </style>
     <label>緯度：<input type="number" id="lat" name="04_latitude" step="0.0001"></label>
     <label>経度：<input type="number" id="lng" name="04_longitude" step="0.0001"></label><br>
 <br>
@@ -70,7 +82,7 @@
     <label>観察者名*：<input type="text" name="12_observer" required></label><br>
     <label>連絡先（メール）*：<input type="email" name="13_email" required></label><br>
     <input type="submit" value="確認画面へ">
-  </form></h2>
+  </form>
 
   <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
